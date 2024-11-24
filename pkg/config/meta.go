@@ -1,10 +1,12 @@
 package config
 
 type Meta struct {
-	ConfigVersion int
-	Project       string
-	Deploy        MetaDeploy
-	Cleanup       MetaCleanup
-	GitWorktree   MetaGitWorktree
-	Build         MetaBuild
+	ApplicationVersion     string
+	ApplicationVersionFile string
+	ConfigVersion          int
+	Project                string
+	Deploy                 MetaDeploy
+	Cleanup                MetaCleanup
+	GitWorktree            MetaGitWorktree
+	Build                  MetaBuild
 }

@@ -1,8 +1,10 @@
 package config
 
 import (
+	"bufio"
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -116,6 +118,15 @@ func GetWerfConfig(ctx context.Context, customWerfConfigRelPath, customWerfConfi
 		return "", nil, fmt.Errorf(format, defaultProjectName)
 	}
 
+	if meta.ApplicationVersionFile != "" {
+		applicationVersion, err := getApplicationVersionFromFile(meta.ApplicationVersionFile, giterminismManager)
+		if err != nil {
+			return "", nil, err
+		}
+
+		meta.ApplicationVersion = applicationVersion
+	}
+
 	werfConfig, err := prepareWerfConfig(giterminismManager, rawStapelImages, rawImagesFromDockerfile, meta)
 	if err != nil {
 		return "", nil, err
@@ -140,6 +151,65 @@ func GetDefaultProjectName(ctx context.Context, giterminismManager giterminism_m
 
 	name := filepath.Base(giterminismManager.ProjectDir())
 	return slug.Project(name), nil
+}
+
+func getApplicationVersionFromFile(path string, giterminismManager giterminism_manager.Interface) (string, error) {
+	absolutePath := util.GetAbsoluteFilepath(path)
+	if !util.IsSubpathOfBasePath(giterminismManager.LocalGitRepo().GetWorkTreeDir(), path) && !giterminismManager.Dev() {
+		return "", fmt.Errorf("application version file %q must be in the project git work tree %q", path, giterminismManager.LocalGitRepo().GetWorkTreeDir())
+	}
+
+	r, err := os.Open(absolutePath)
+	if err != nil {
+		return "", fmt.Errorf("cannot read applicationVersionFile %s: %w", absolutePath, err)
+	}
+	defer r.Close()
+
+	type versionFileType struct {
+		Version string `yaml:"version" json:"version"`
+	}
+
+	var applicationVersion string
+
+	switch filepath.Ext(absolutePath) {
+	case ".yaml", ".yml":
+		var data versionFileType
+
+		err = yaml.NewDecoder(r).Decode(&data)
+		if err != nil {
+			return "", fmt.Errorf("cannot read application version from applicationVersionFile %s: %w", absolutePath, err)
+		}
+
+		applicationVersion = data.Version
+	case ".json":
+		var data versionFileType
+
+		err = json.NewDecoder(r).Decode(&data)
+		if err != nil {
+			return "", fmt.Errorf("cannot read application version from applicationVersionFile %s: %w", absolutePath, err)
+		}
+
+		applicationVersion = data.Version
+	case "":
+		scanner := bufio.NewScanner(r)
+
+		if scanner.Scan() {
+			applicationVersion = scanner.Text()
+		}
+
+		err = scanner.Err()
+		if err != nil {
+			return "", fmt.Errorf("cannot read application version from applicationVersionFile %s", absolutePath)
+		}
+	default:
+		return "", fmt.Errorf("applicationVersionFile %s has unsupported file extension", absolutePath)
+	}
+
+	if len(applicationVersion) == 0 {
+		return "", fmt.Errorf("applicationVersionFile %s does not specify application version", absolutePath)
+	}
+
+	return applicationVersion, nil
 }
 
 func writeWerfConfigRender(werfConfigRenderContent, werfConfigRenderPath string) error {
@@ -593,6 +663,14 @@ func splitByMetaAndRawImages(docs []*doc) (*Meta, []*rawStapelImage, []*rawImage
 
 func isMetaDoc(h map[string]interface{}) bool {
 	if _, ok := h["configVersion"]; ok {
+		return true
+	}
+
+	if _, ok := h["applicationVersion"]; ok {
+		return true
+	}
+
+	if _, ok := h["applicationVersionFile"]; ok {
 		return true
 	}
 

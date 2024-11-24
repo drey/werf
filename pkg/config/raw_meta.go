@@ -8,12 +8,14 @@ import (
 )
 
 type rawMeta struct {
-	ConfigVersion *int                `yaml:"configVersion,omitempty"`
-	Project       *string             `yaml:"project,omitempty"`
-	Build         *rawMetaBuild       `yaml:"build,omitempty"`
-	Deploy        *rawMetaDeploy      `yaml:"deploy,omitempty"`
-	Cleanup       *rawMetaCleanup     `yaml:"cleanup,omitempty"`
-	GitWorktree   *rawMetaGitWorktree `yaml:"gitWorktree,omitempty"`
+	ApplicationVersion     *string             `yaml:"applicationVersion,omitempty"`
+	ApplicationVersionFile *string             `yaml:"applicationVersionFile,omitempty"`
+	ConfigVersion          *int                `yaml:"configVersion,omitempty"`
+	Project                *string             `yaml:"project,omitempty"`
+	Build                  *rawMetaBuild       `yaml:"build,omitempty"`
+	Deploy                 *rawMetaDeploy      `yaml:"deploy,omitempty"`
+	Cleanup                *rawMetaCleanup     `yaml:"cleanup,omitempty"`
+	GitWorktree            *rawMetaGitWorktree `yaml:"gitWorktree,omitempty"`
 
 	doc *doc `yaml:"-"` // parent
 
@@ -41,6 +43,10 @@ func (c *rawMeta) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return newDetailedConfigError("'project' field cannot be empty!", nil, c.doc)
 	}
 
+	if c.ApplicationVersion != nil && c.ApplicationVersionFile != nil {
+		return newDetailedConfigError("use either 'applicationVersion' or 'applicationVersionFile' config param", nil, c.doc)
+	}
+
 	if err := slug.ValidateProject(*c.Project); err != nil {
 		return newDetailedConfigError(fmt.Sprintf("bad project name %q specified in config: %s", *c.Project, err), nil, c.doc)
 	}
@@ -53,6 +59,14 @@ func (c *rawMeta) toMeta() *Meta {
 
 	if c.ConfigVersion != nil {
 		meta.ConfigVersion = *c.ConfigVersion
+	}
+
+	if c.ApplicationVersion != nil {
+		meta.ApplicationVersion = *c.ApplicationVersion
+	}
+
+	if c.ApplicationVersionFile != nil {
+		meta.ApplicationVersionFile = *c.ApplicationVersionFile
 	}
 
 	if c.Project != nil {

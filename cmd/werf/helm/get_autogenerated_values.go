@@ -307,11 +307,12 @@ func runGetServiceValues(ctx context.Context, imageNameListFromArgs []string) er
 	}
 
 	vals, err := helpers.GetServiceValues(ctx, werfConfig.Meta.Project, imagesRepository, imagesInfoGetters, helpers.ServiceValuesOptions{
-		Namespace:         releaseNamespace,
-		Env:               *commonCmdData.Environment,
-		IsStub:            isStub,
-		DisableEnvStub:    true,
-		StubImageNameList: stubImageNameList, SetDockerConfigJsonValue: *commonCmdData.SetDockerConfigJsonValue,
+		ApplicationVersion: werfConfig.Meta.ApplicationVersion,
+		Namespace:          releaseNamespace,
+		Env:                *commonCmdData.Environment,
+		IsStub:             isStub,
+		DisableEnvStub:     true,
+		StubImageNameList:  stubImageNameList, SetDockerConfigJsonValue: *commonCmdData.SetDockerConfigJsonValue,
 		DockerConfigPath: filepath.Dir(registryCredentialsPath),
 		CommitHash:       headHash,
 		CommitDate:       headTime,

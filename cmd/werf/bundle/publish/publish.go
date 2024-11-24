@@ -375,9 +375,10 @@ func runPublish(ctx context.Context, imageNameListFromArgs []string) error {
 	}
 
 	if vals, err := helpers.GetServiceValues(ctx, werfConfig.Meta.Project, imagesRepo, imagesInfoGetters, helpers.ServiceValuesOptions{
-		Env:        *commonCmdData.Environment,
-		CommitHash: headHash,
-		CommitDate: headTime,
+		ApplicationVersion: werfConfig.Meta.ApplicationVersion,
+		Env:                *commonCmdData.Environment,
+		CommitHash:         headHash,
+		CommitDate:         headTime,
 	}); err != nil {
 		return fmt.Errorf("error creating service values: %w", err)
 	} else {

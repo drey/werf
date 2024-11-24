@@ -468,6 +468,7 @@ func runRender(ctx context.Context, imageNameListFromArgs []string) error {
 			}
 
 			if vals, err := helpers.GetServiceValues(ctx, werfConfig.Meta.Project, imagesRepository, imagesInfoGetters, helpers.ServiceValuesOptions{
+				ApplicationVersion:       werfConfig.Meta.ApplicationVersion,
 				Namespace:                releaseNamespace,
 				Env:                      *commonCmdData.Environment,
 				IsStub:                   isStub,

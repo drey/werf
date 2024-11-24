@@ -525,14 +525,16 @@ func run(
 				return fmt.Errorf("get HEAD commit time: %w", err)
 			}
 
-			if vals, err := helpers.GetServiceValues(ctx, werfConfig.Meta.Project, imagesRepo, imagesInfoGetters, helpers.ServiceValuesOptions{
-				Namespace:                releaseNamespace,
-				Env:                      *commonCmdData.Environment,
-				SetDockerConfigJsonValue: *commonCmdData.SetDockerConfigJsonValue,
-				DockerConfigPath:         filepath.Dir(registryCredentialsPath),
-				CommitHash:               headHash,
-				CommitDate:               headTime,
-			}); err != nil {
+			if vals, err := helpers.GetServiceValues(ctx, werfConfig.Meta.Project, imagesRepo, imagesInfoGetters,
+				helpers.ServiceValuesOptions{
+					ApplicationVersion:       werfConfig.Meta.ApplicationVersion,
+					Namespace:                releaseNamespace,
+					Env:                      *commonCmdData.Environment,
+					SetDockerConfigJsonValue: *commonCmdData.SetDockerConfigJsonValue,
+					DockerConfigPath:         filepath.Dir(registryCredentialsPath),
+					CommitHash:               headHash,
+					CommitDate:               headTime,
+				}); err != nil {
 				return fmt.Errorf("get service values: %w", err)
 			} else {
 				wc.SetServiceValues(vals)
