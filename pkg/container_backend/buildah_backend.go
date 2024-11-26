@@ -596,6 +596,7 @@ func (backend *BuildahBackend) GetImageInfo(ctx context.Context, ref string, opt
 		return nil, nil
 	}
 
+	// TODO: remove this legacy logic in v3.
 	parentID := string(inspect.Docker.Parent)
 	if parentID == "" {
 		if id, ok := inspect.Docker.Config.Labels[image.WerfBaseImageIDLabel]; ok { // built with werf
@@ -728,6 +729,7 @@ func (backend *BuildahBackend) BuildDockerfile(ctx context.Context, dockerfileCo
 		BuildArgs:  buildArgs,
 		Target:     opts.Target,
 		Labels:     opts.Labels,
+		Secrets:    opts.Secrets,
 	})
 }
 
@@ -789,11 +791,11 @@ func (backend *BuildahBackend) RenameImage(ctx context.Context, img LegacyImageI
 		img.SetInfo(info)
 	}
 
-	if desc := img.GetStageDescription(); desc != nil {
+	if stageDesc := img.GetStageDesc(); stageDesc != nil {
 		repository, tag := image.ParseRepositoryAndTag(newImageName)
-		desc.Info.Name = newImageName
-		desc.Info.Repository = repository
-		desc.Info.Tag = tag
+		stageDesc.Info.Name = newImageName
+		stageDesc.Info.Repository = repository
+		stageDesc.Info.Tag = tag
 	}
 
 	return nil

@@ -44,9 +44,6 @@ jobs:
         run: |
           . $(werf ci-env github --as-file)
           werf converge
-        with:
-          env: production
-          kube-config-base64-data: ${{ secrets.KUBECONFIG_BASE64_PROD }}
         env:
           WERF_NAMESPACE: "werfio-production"
           WERF_DIR: "ci"
@@ -88,6 +85,11 @@ jobs:
           registry: ghcr.io
           username: ${{ secrets.WERF_IN_IMAGE_REPO_LOGIN }}
           password: ${{ secrets.WERF_IN_IMAGE_REPO_PASSWORD }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64, linux/arm64
 
       - name: Build and publish werf images
         run: ./scripts/werf-in-image/build-and-publish.sh ${{ matrix.dest-registry }}

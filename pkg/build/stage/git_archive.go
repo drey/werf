@@ -38,12 +38,8 @@ type GitArchiveStage struct {
 	ContainerScriptsDir  string
 }
 
-func (s *GitArchiveStage) SelectSuitableStage(ctx context.Context, c Conveyor, stages []*image.StageDescription) (*image.StageDescription, error) {
-	ancestorsStages, err := s.selectStagesAncestorsByGitMappings(ctx, c, stages)
-	if err != nil {
-		return nil, fmt.Errorf("unable to select cache images ancestors by git mappings: %w", err)
-	}
-	return s.selectStageByOldestCreationTs(ancestorsStages)
+func (s *GitArchiveStage) SelectSuitableStageDesc(ctx context.Context, c Conveyor, stageDescSet image.StageDescSet) (*image.StageDesc, error) {
+	return selectSuitableStageDesc(ctx, c, stageDescSet, s)
 }
 
 // TODO: 1.3 add git mapping type (dir, file, ...) to gitArchive stage digest

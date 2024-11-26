@@ -2,7 +2,6 @@ package stage
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/werf/werf/v2/pkg/build/builder"
 	"github.com/werf/werf/v2/pkg/container_backend"
@@ -23,12 +22,8 @@ type UserWithGitPatchStage struct {
 	GitPatchStage *GitPatchStage
 }
 
-func (s *UserWithGitPatchStage) SelectSuitableStage(ctx context.Context, c Conveyor, stages []*image.StageDescription) (*image.StageDescription, error) {
-	ancestorsImages, err := s.selectStagesAncestorsByGitMappings(ctx, c, stages)
-	if err != nil {
-		return nil, fmt.Errorf("unable to select cache images ancestors by git mappings: %w", err)
-	}
-	return s.selectStageByOldestCreationTs(ancestorsImages)
+func (s *UserWithGitPatchStage) SelectSuitableStageDesc(ctx context.Context, c Conveyor, stageDescSet image.StageDescSet) (*image.StageDesc, error) {
+	return selectSuitableStageDesc(ctx, c, stageDescSet, s)
 }
 
 func (s *UserWithGitPatchStage) GetNextStageDependencies(ctx context.Context, c Conveyor) (string, error) {

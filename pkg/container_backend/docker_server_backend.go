@@ -81,6 +81,10 @@ func (backend *DockerServerBackend) BuildDockerfile(ctx context.Context, _ []byt
 		cliArgs = append(cliArgs, "--label", label)
 	}
 
+	for _, secret := range opts.Secrets {
+		cliArgs = append(cliArgs, "--secret", secret)
+	}
+
 	tempID := uuid.New().String()
 	opts.Tags = append(opts.Tags, tempID)
 	for _, tag := range opts.Tags {
@@ -175,11 +179,11 @@ func (backend *DockerServerBackend) RenameImage(ctx context.Context, img LegacyI
 		img.SetInfo(info)
 	}
 
-	if desc := img.GetStageDescription(); desc != nil {
+	if stageDesc := img.GetStageDesc(); stageDesc != nil {
 		repository, tag := image.ParseRepositoryAndTag(newImageName)
-		desc.Info.Name = newImageName
-		desc.Info.Repository = repository
-		desc.Info.Tag = tag
+		stageDesc.Info.Name = newImageName
+		stageDesc.Info.Repository = repository
+		stageDesc.Info.Tag = tag
 	}
 
 	return nil
